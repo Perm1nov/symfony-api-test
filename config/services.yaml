@@ -1,0 +1,36 @@
+parameters:
+    app.yandex.apikey: '%env(YANDEX_API_KEY)%'
+
+services:
+    app.httpclient:
+        class: GuzzleHttp\Client
+
+    Jsor\Doctrine\PostGIS\Event\ORMSchemaEventSubscriber:
+        tags:
+            - { name: doctrine.event_subscriber, connection: default }
+
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    App\Clients\GeocoderApiClient:
+        class: App\Clients\GeocoderApiClient
+        arguments:
+            $client: '@app.httpclient'
+            $url: 'https://geocode-maps.yandex.ru/1.x'
+            $apiKey: '%app.yandex.apikey%'
+            
+    App\Parsers\GeocoderResponseParser:
+        class: App\Parsers\GeocoderResponseParser
+        
+    App\Services\AddressPositionService:
+        class: App\Services\AddressPositionService
+        arguments:
+            $positionService: '@App\Services\GetAddressPositionService'

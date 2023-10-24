@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{% block title %}Geocoder{% endblock %}</title>
+        {% block stylesheets %}
+            {{ encore_entry_link_tags('app') }}
+        {% endblock %}
+
+        {% block javascripts %}
+        {% endblock %}
+    </head>
+    <body>
+    {% block body %}
+        {{ form(form) }}
+        <br>
+        <div class="row">
+            {% if message %}
+                <div class="alert alert-danger col-md-4 offset-4 text-center" role="alert">
+                    {{message}}
+                </div>
+            {% endif %}
+            {% if success is same as true %}
+                <div class="alert alert-success col-md-4 offset-4 text-center">
+                    Успешно сохранено
+                </div>
+            {% endif %}
+        </div>
+    {% endblock %}
+    </body>
+</html>

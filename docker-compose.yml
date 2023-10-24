@@ -1,0 +1,62 @@
+version: "3.4"
+
+services:
+  php:
+    build:
+      context: .
+      target: app_php
+      args:
+        SYMFONY_VERSION: ${SYMFONY_VERSION:-}
+        STABILITY: ${STABILITY:-stable}
+    restart: unless-stopped
+    volumes:
+      - php_socket:/var/run/php
+      - ./:/app
+    environment:
+      PHP_ENABLE_XDEBUG: 1
+      PHP_IDE_CONFIG: "serverName=${DOMAIN}"
+    networks:
+      - web
+      - default
+
+  nginx:
+    build:
+      context: .
+      target: nginx
+    volumes:
+      - ./docker/nginx:/etc/nginx/conf.d
+      - ./:/app
+    links:
+      - php
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.nginx.rule: "Host(`${DOMAIN}`)"
+    networks:
+      - web
+      - default
+
+  db:
+    image: kartoza/postgis:14-3.2
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./docker/db/initdb.d:/docker-entrypoint-initdb.d
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - 127.0.0.1:${DOCKER_DB_PORT}:5432
+  
+  node:
+    image: node:19-alpine
+    volumes:
+      - ./:/app
+    working_dir: /app
+
+volumes:
+  db_data:
+  php_socket:
+
+networks:
+  web:
+    external: true
